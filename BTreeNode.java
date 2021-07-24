@@ -41,4 +41,16 @@ class BTreeNode {
         this.next = null;
         this.values = new long[2 * t - 1];
     }
+
+    public boolean hasSpace() {
+        return this.n < this.maxKeys();
+    }
+
+    public int maxKeys() {
+        return this.t * 2 - 1;
+    }
+
+    public int getMidpointIndex() {
+        return this.t;
+    }
 }

@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Scanner;
 public class BTreeMain {
 
     public static void main(String[] args) {
-
+    	
         /** Read the input file -- input.txt */
         Scanner scan = null;
         try {
@@ -28,9 +29,27 @@ public class BTreeMain {
         /** Reading the database student.csv into B+Tree Node*/
         List<Student> studentsDB = getStudents();
 
+        /**
+         * TODO: delete this section
+         */
+        int cnt = 0;
+        System.out.println();
+        System.out.println();
+        // ---
         for (Student s : studentsDB) {
+            if (cnt == 20) { 
+                System.out.println();
+            }
             bTree.insert(s);
+            /**
+             * TODO: Delete this
+             */
+            bTree.printTree();
+            cnt++;
+            if (cnt == 21) {break;}
+            // ----
         }
+        System.exit(0);
 
         /** Start reading the operations now from input file*/
         try {
@@ -49,8 +68,10 @@ public class BTreeMain {
                             String major = s2.next();
                             String level = s2.next();
                             int age = Integer.parseInt(s2.next());
-                            /** TODO: Write a logic to generate recordID*/
-                            long recordID = ;
+                            
+                            /*Write a logic to generate recordID*/
+                            Random r = new Random();
+                            long recordID = (long) r.nextInt(1000000000 - 1) + 1;  //up to 10 digit number
 
                             Student s = new Student(studentId, age, studentName, major, level, recordID);
                             bTree.insert(s);
@@ -98,8 +119,59 @@ public class BTreeMain {
          * Extract the students information from "Students.csv"
          * return the list<Students>
          */
-
         List<Student> studentList = new ArrayList<>();
+        
+        long sID;  //student ID
+        long rID;  //record ID
+        int age;   
+        String name;
+        String major;
+        String level;
+        
+        String line;
+        String[] lineSplit;
+        //open scanner, try to read file
+        Scanner sc = null;
+        try {
+        	sc = new Scanner(new File("src/Student.csv"));
+        } catch (FileNotFoundException e) {
+        	System.out.println("File not found.");
+        }
+        
+        String delim = ",";  //set delimeter
+        
+        while (sc.hasNextLine()) {  			//grab each line
+        	sc.useDelimiter(delim);				//use comma as delimeter
+        	line = sc.nextLine();
+        	System.out.println(line);
+        	
+        	lineSplit = line.split(delim);		//split up each line of CSV file
+        	
+        	sID = Long.parseLong(lineSplit[0]);	//convert to long and assign to sID
+        	name = lineSplit[1];				//assign to name
+        	major = lineSplit[2];				//assign to major
+        	level = lineSplit[3];				//assign to level
+        	age = Integer.parseInt(lineSplit[4]); //convert to Integer and assign to age
+        	rID = Integer.parseInt(lineSplit[5]);
+        	
+        	//create a new student and add to student list arrayList
+        	studentList.add(new Student(sID, age, name, major, level, rID));        	
+        }
+        
+        //printList(studentList);       
+               
+        sc.close();  //close scanner
         return studentList;
+    }
+    
+    /*
+     * print out each student in the list to confirm getStudents is parsing correctly
+     */
+    private static void printList(List<Student> list) {
+    	
+    	for (Student stu : list) {
+    		System.out.println(stu.studentId + "|" + stu.studentName + "|" + stu.major + "|" + stu.level + "|" + stu.age + "|" + stu.recordId);
+    	}
+    	
     }
 }
