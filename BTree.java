@@ -76,6 +76,9 @@ class BTree {
             return node;
         }
         if (node.leaf) { // we found an appropriate leaf node
+            if (node.hasKey(entry.studentId)) { // prevent the addition of duplicate keys
+                return null;
+            }
             if (node.hasSpace()) { // we can just put the key here
                 for (int i = node.n; i >= 0; i--) { // loop backwards to shift all values right assuming that the entry will be stored somewhere to the left
                     if (entry.studentId < node.keys[i]) { // entry must be stored to the right of this key

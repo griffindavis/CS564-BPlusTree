@@ -30,7 +30,12 @@ public class BTreeMain {
         List<Student> studentsDB = getStudents();
 
         for (Student s : studentsDB) {
+            if (s.recordId == 0) {
+                System.out.println();
+            }
+            System.out.println("Inserting: " + s.studentId);
             bTree.insert(s);
+            bTree.printTree();
         }
 
         /** Start reading the operations now from input file*/
