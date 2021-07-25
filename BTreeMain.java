@@ -29,27 +29,9 @@ public class BTreeMain {
         /** Reading the database student.csv into B+Tree Node*/
         List<Student> studentsDB = getStudents();
 
-        /**
-         * TODO: delete this section
-         */
-        int cnt = 0;
-        System.out.println();
-        System.out.println();
-        // ---
         for (Student s : studentsDB) {
-            if (cnt == 20) { 
-                System.out.println();
-            }
             bTree.insert(s);
-            /**
-             * TODO: Delete this
-             */
-            bTree.printTree();
-            cnt++;
-            if (cnt == 21) {break;}
-            // ----
         }
-        System.exit(0);
 
         /** Start reading the operations now from input file*/
         try {

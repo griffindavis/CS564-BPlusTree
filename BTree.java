@@ -41,7 +41,6 @@ class BTree {
 
          // find the correct leaf node
         BTreeNode node = root;
-        System.out.println("Inserting " + student.studentId + " - " + student.recordId);
 
         if (node == null) {
             root = insertRecursive(node, student);
@@ -85,8 +84,7 @@ class BTree {
                 }
             }
             else { // split
-                System.out.println("need to split");
-                return splitNode(node, entry);
+                return splitLeafNode(node, entry);
             }
         }
         else { // this is an internal node
@@ -138,13 +136,41 @@ class BTree {
             }
         }
         else {
-            System.out.println("please handle when it needs to split again.");
+            newNode = splitInternalNode(currNode);
+            if (currNode == root) {
+                this.root = new BTreeNode(this.t, false);
+                this.root.keys[0] = newNode.keys[0];
+                this.root.children[0] = currNode;
+                this.root.children[1] = newNode;
+                this.root.n++;
+            }
+            else {
+                return handleAddNewNode(currNode, newNode);
+            }
         }
         
         return null;
     }
+
+    private BTreeNode splitInternalNode(BTreeNode currNode) {
+        BTreeNode newNode = new BTreeNode(this.t, false);
+        int newIndex = 0;
+        for (int i = currNode.getMidpointIndex(); i < currNode.maxKeys(); i++) {
+            newIndex = i - currNode.getMidpointIndex();
+            newNode.keys[newIndex] = currNode.keys[i];
+            newNode.children[newIndex] = currNode.children[i];
+            
+            newNode.n++; // increment new node
+            
+            // remove values from current node
+            currNode.keys[i] = 0;
+            currNode.children[i] = null;
+            currNode.n--; // decrement current node
+        }
+        return newNode;
+    }
     
-    private BTreeNode splitNode(BTreeNode node, Student entry) {
+    private BTreeNode splitLeafNode(BTreeNode node, Student entry) {
         BTreeNode newNode = new BTreeNode(this.t, true);
         int newIndex = 0;
         for (int i = node.getMidpointIndex(); i < node.maxKeys(); i++) {
@@ -229,8 +255,54 @@ class BTree {
     void printLeaf(BTreeNode node) {
         String out = "[";
         for (int i = 0; i < node.maxKeys(); i++) {
-            out += "(" + node.keys[i] + " - " + node.values[i] + ")";
+            out += "(" + node.keys[i] + ")";
         }
-        System.out.print(out + "]\t");
+        System.out.print(out + "]");
+    }
+
+    void printBetter() {
+        ArrayList<BTreeNode> nodeList = new ArrayList<BTreeNode>();
+        nodeList.add(this.root);
+        while (!nodeList.isEmpty()) {
+            // print keys of the whole list
+            String out = "";
+            for (int i = 0; i < nodeList.size(); i++) {
+                out += printNode(nodeList.get(i));
+            }
+            // add all children of the keys
+            int size = nodeList.size();
+            for (int j = 0; j < size; j++) {
+                BTreeNode node = nodeList.get(0);
+                for (int k = 0; k <= node.n; k++) {
+                    if (node.children[k] != null) {
+                        nodeList.add(node.children[k]);
+                    }
+                }
+                nodeList.remove(node);
+            }
+            if (nodeList.size() > 0) {
+                for (int i = 0; i < 10 - nodeList.size(); i++) {
+                    out = "\t" + out;
+                }
+            }
+            System.out.println(out);
+        }
+    }
+    String printNode(BTreeNode node) {
+        if (node == null) { return " - "; }
+        String out = "";
+        if (node.leaf) {
+            for (int i = 0; i < node.maxKeys(); i++) {
+                if (node.keys[i] == 0) { break; }
+                out += "(" + node.keys[i] + ")";
+            }
+        }
+        else {
+            for (int i = 0; i < node.maxKeys(); i++) {
+                if (node.keys[i] == 0) { break; }
+                out += node.keys[i] + (i < node.n - 1 ? " " : "");
+            }
+        }
+        return "[" + out + "] ";
     }
 }
