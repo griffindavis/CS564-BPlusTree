@@ -24,8 +24,7 @@ class BTree {
 
     long search(long studentId) {
         /**
-         * TODO:
-         * Implement this function to search in the B+Tree.
+         * TODO: Implement this function to search in the B+Tree.
          * Return recordID for the given StudentID.
          * Otherwise, print out a message that the given studentId has not been found in the table and return -1.
          */
@@ -34,9 +33,7 @@ class BTree {
 
     BTree insert(Student student) {
         /**
-         * TODO:
-         * Implement this function to insert in the B+Tree.
-         * Also, insert in student.csv after inserting in B+Tree.
+         * TODO: update student.csv
          */
 
          // find the correct leaf node
@@ -89,7 +86,7 @@ class BTree {
                         node.keys[i] = entry.studentId;
                         node.values[i] = entry.recordId;
                         node.n++;
-                        break; // TODO: this should update the parent key
+                        break; // TODO: make sure this is safe and we don't need to update the parent key in any circumstances
                     }
                 }
             }
@@ -218,8 +215,7 @@ class BTree {
 
     boolean delete(long studentId) {
         /**
-         * TODO:
-         * Implement this function to delete in the B+Tree.
+         * TODO: Implement this function to delete in the B+Tree.
          * Also, delete in student.csv after deleting in B+Tree, if it exists.
          * Return true if the student is deleted successfully otherwise, return false.
          */

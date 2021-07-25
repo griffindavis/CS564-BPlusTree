@@ -96,11 +96,6 @@ public class BTreeMain {
     }
 
     private static List<Student> getStudents() {
-
-        /** TODO:
-         * Extract the students information from "Students.csv"
-         * return the list<Students>
-         */
         List<Student> studentList = new ArrayList<>();
         
         long sID;  //student ID
