@@ -202,14 +202,13 @@ class BTree {
             node.n--; // decrement current node
         }
         // move sibling pointers
-        newNode.next = node.next == null ? null : node.next.next;
+        newNode.next = (node.next == null) ? null : node.next.next;
         node.next = newNode;
 
-        if (entry != null) {
-            newNode.keys[newNode.n] = entry.studentId;
-            newNode.values[newNode.n] = entry.recordId;
-            newNode.n++;
-        }
+        // insert the new value
+        newNode.keys[newNode.n] = entry.studentId;
+        newNode.values[newNode.n] = entry.recordId;
+        newNode.n++;
         
         return newNode;
     }
@@ -224,16 +223,20 @@ class BTree {
         return true;
     }
 
+    /**
+     * Returns a list of the record IDs in the leaf nodes of the tree
+     * @return - a list of the record IDs from left to right in the tree
+     */
     List<Long> print() {
 
         List<Long> listOfRecordID = new ArrayList<>();
 
         BTreeNode node = root;
-        while (!node.leaf) {
+        while (!node.leaf) { // find the left most leaf node
             node = node.children[0];
         }
-
-        while (node != null) {
+        
+        while (node != null) { // travers the linked-list like structure of the leaf nodes
             for (int i = 0; i < node.n; i++) {
                 listOfRecordID.add(node.values[i]);
             }
@@ -244,39 +247,11 @@ class BTree {
 
     /**
      * For testing purposes
-     * 
-
+     * Prints the tree nicely for debugging
+     *
      * TODO: Delete Me
      */
     void printTree() {
-        printInternal(root);
-        System.out.println();
-    }
-    void printInternal(BTreeNode node) {
-        if (node == null) return;
-        if (node.leaf){ 
-            printLeaf(node);
-            return;
-        }
-        String out = "[";
-        for (int i = 0; i < node.maxKeys(); i++) {
-            out += node.keys[i] + ", ";
-        }
-        System.out.println(out + "]");
-        for (int i = 0; i <= node.maxKeys(); i++) {
-            printInternal(node.children[i]);
-        }
-        System.out.println();
-    }
-    void printLeaf(BTreeNode node) {
-        String out = "[";
-        for (int i = 0; i < node.maxKeys(); i++) {
-            out += "(" + node.keys[i] + ")";
-        }
-        System.out.print(out + "]");
-    }
-
-    void printBetter() {
         ArrayList<BTreeNode> nodeList = new ArrayList<BTreeNode>();
         nodeList.add(this.root);
         while (!nodeList.isEmpty()) {
@@ -304,8 +279,15 @@ class BTree {
             System.out.println(out);
         }
     }
+
+    /**
+     * For testing purposes, returns a string of the node
+     * @param node - node to print
+     * @return String representing the node to print
+     * 
+     * TODO: Delete Me
+     */
     String printNode(BTreeNode node) {
-        if (node == null) { return " - "; }
         String out = "";
         if (node.leaf) {
             for (int i = 0; i < node.maxKeys(); i++) {
