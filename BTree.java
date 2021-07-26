@@ -28,37 +28,6 @@ class BTree {
          * Return recordID for the given StudentID.
          * Otherwise, print out a message that the given studentId has not been found in the table and return -1.
          */
-        return searchRecursive(this.root, studentId);
-    }
-
-    /**
-     * Recursive search function to travers the b+ tree
-     * @param node - current node to search in
-     * @param key - the key to find
-     * @return the record ID if found, otherwise -1
-     */
-    long searchRecursive(BTreeNode node, long key) {
-        if (node.leaf) {
-            for (int i = 0; i < node.n; i++) {
-                if (node.keys[i] == key) {
-                    return node.values[i];
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < node.n; i++) {
-                if (key < node.keys[i]) {
-                    return searchRecursive(node.children[i], key);
-                }
-                else if (i == node.n - 1) {
-                    return searchRecursive(node.children[i+1], key);
-                }
-                else {
-                    continue;
-                }
-            }
-        }
-        System.out.println("The record does not exist in the tree.");
         return -1;
     }
 
