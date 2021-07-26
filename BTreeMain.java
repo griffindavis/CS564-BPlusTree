@@ -29,6 +29,10 @@ public class BTreeMain {
         /** Reading the database student.csv into B+Tree Node*/
         List<Student> studentsDB = getStudents();
 
+        //TODO delete me
+        System.out.println("Quit after getStudents; theres a system exit here");
+        System.exit(0);
+        
         for (Student s : studentsDB) {
             bTree.insert(s);
         }
