@@ -28,6 +28,37 @@ class BTree {
          * Return recordID for the given StudentID.
          * Otherwise, print out a message that the given studentId has not been found in the table and return -1.
          */
+        return searchRecursive(this.root, studentId);
+    }
+
+    /**
+     * Recursive search function to travers the b+ tree
+     * @param node - current node to search in
+     * @param key - the key to find
+     * @return the record ID if found, otherwise -1
+     */
+    long searchRecursive(BTreeNode node, long key) {
+        if (node.leaf) {
+            for (int i = 0; i < node.n; i++) {
+                if (node.keys[i] == key) {
+                    return node.values[i];
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < node.n; i++) {
+                if (key < node.keys[i]) {
+                    return searchRecursive(node.children[i], key);
+                }
+                else if (i == node.n - 1) {
+                    return searchRecursive(node.children[i+1], key);
+                }
+                else {
+                    continue;
+                }
+            }
+        }
+        System.out.println("The record does not exist in the tree.");
         return -1;
     }
 
@@ -141,16 +172,18 @@ class BTree {
             }
         }
         else { // no space, requires a split
-            newNode = splitInternalNode(currNode);
+            BTreeNode n2 = splitInternalNode(currNode);
             if (currNode == root) { // special handling for splitting the root
                 this.root = new BTreeNode(this.t, false);
-                this.root.keys[0] = newNode.keys[0];
+                this.root.keys[0] = n2.keys[0];
                 this.root.children[0] = currNode;
-                this.root.children[1] = newNode;
+                this.root.children[1] = n2;
                 this.root.n++;
+                return handleAddInternalNode(n2, newNode);
             }
             else { // if not the root, we can handle this normally with a recurrsive call
-                return handleAddInternalNode(currNode, newNode);
+                handleAddInternalNode(n2, newNode);
+                return handleAddInternalNode(currNode, n2);
             }
         } 
         return null;
@@ -169,6 +202,9 @@ class BTree {
             newIndex = i - currNode.getMidpointIndex(); 
             newNode.keys[newIndex] = currNode.keys[i]; // move second half into first half of the new node
             newNode.children[newIndex] = currNode.children[i]; // move second half into first half of the new node
+            if (i == currNode.maxKeys() - 1) {
+                newNode.children[newIndex + 1] = currNode.children[i + 1];
+            }
             
             newNode.n++; // increment new node
             
