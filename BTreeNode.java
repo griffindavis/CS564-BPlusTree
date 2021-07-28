@@ -61,7 +61,7 @@ class BTreeNode {
      */
     public boolean hasKey(long key) {
         for (int i = 0; i < this.n; i++) {
-            if (key <= this.keys[i]) { // use less than or equal since the node will be sorted
+            if (key == this.keys[i]) { // use less than or equal since the node will be sorted
                 return true;
             }
         }

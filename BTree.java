@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 /**
  * B+Tree Structure
  * Key - StudentId
@@ -120,6 +124,9 @@ class BTree {
             if (node.hasKey(entry.studentId)) { // prevent the addition of duplicate keys
                 return null;
             }
+            else {
+                this.addStudentToFile(entry);
+            }
             if (node.hasSpace()) { // we can just put the key here
                 for (int i = node.n; i >= 0; i--) { // loop backwards to shift all values right assuming that the entry will be stored somewhere to the left
                     if (entry.studentId < node.keys[i]) { // entry must be stored to the right of this key
@@ -178,8 +185,6 @@ class BTree {
                     currNode.keys[i] = newKey;
                     currNode.children[i + 1] = newNode;
                     currNode.n++;
-                    newNode.next = currNode.children[i+1]; // update pointers
-                    if (i > 0) { currNode.children[i - 1].next = newNode; }
                     break;
                 }
             }
@@ -188,15 +193,30 @@ class BTree {
             BTreeNode n2 = splitInternalNode(currNode);
             if (currNode == root) { // special handling for splitting the root
                 this.root = new BTreeNode(this.t, false);
-                this.root.keys[0] = n2.keys[0];
+                currNode.n--;
+                this.root.keys[0] = currNode.keys[currNode.n];
+                currNode.keys[currNode.n] = 0;
                 this.root.children[0] = currNode;
                 this.root.children[1] = n2;
                 this.root.n++;
-                return handleAddInternalNode(n2, newNode);
+                return null;
             }
+            
             else { // if not the root, we can handle this normally with a recurrsive call
+                /*
+                BTreeNode temp = new BTreeNode(this.t, false);
+                temp.keys[0] = currNode.keys[currNode.n];
+                currNode.n--;
+                temp.children[0] = currNode;
+                temp.children[1] = n2;
+                temp.n++;
+
+                return temp;
+                */
+            
                 handleAddInternalNode(n2, newNode);
                 return handleAddInternalNode(currNode, n2);
+                
             }
         } 
         return null;
@@ -217,6 +237,7 @@ class BTree {
             newNode.children[newIndex] = currNode.children[i]; // move second half into first half of the new node
             if (i == currNode.maxKeys() - 1) {
                 newNode.children[newIndex + 1] = currNode.children[i + 1];
+                currNode.children[i + 1] = null;
             }
             
             newNode.n++; // increment new node
@@ -260,6 +281,47 @@ class BTree {
         newNode.n++;
         
         return newNode;
+    }
+
+    /**
+     * Adds the student entry to the file
+     * @param student - the student to add
+     */
+    private void addStudentToFile(Student student) {
+        if (existsInFile(student)) {
+            return;
+        }
+        PrintWriter pw = null;
+        String output = "";
+        output += Long.toString(student.studentId) + ",";
+        output += student.studentName + ",";
+        output += student.major + ",";
+        output += student.level + ",";
+        output += Integer.toString(student.age) + ",";
+        output += Long.toString(student.recordId);
+        try {
+            pw = new PrintWriter(new FileOutputStream(new File("src/Student.csv"), true));
+            pw.println(output);
+            pw.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found.");
+        }
+    }
+
+    private boolean existsInFile(Student student) {
+        Scanner scan = null;
+        try {
+            scan = new Scanner(new File("src/Student.csv"));
+            while(scan.hasNextLine()) {
+                if (Long.parseLong(scan.nextLine().split(",")[0]) == student.studentId) {
+                    scan.close();
+                    return true;
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found.");
+        }
+        return false;
     }
 
     boolean delete(long studentId) {
@@ -345,8 +407,15 @@ class BTree {
         }
         else {
             for (int i = 0; i < node.maxKeys(); i++) {
-                if (node.keys[i] == 0) { break; }
-                out += node.keys[i] + (i < node.n - 1 ? " " : "");
+                //if (node.keys[i] == 0) { break; }
+                if (i == 0) {
+                    out += "<" + node.children[i] + ">";
+                }
+                out += node.keys[i];
+                if (i < node.maxKeys()) {
+                    out += "<" + node.children[i+1] + ">";
+                }
+                out += (i < node.maxKeys() - 1 ? " " : "");
             }
         }
         return "[" + out + "] ";

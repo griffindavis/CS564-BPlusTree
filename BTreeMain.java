@@ -32,10 +32,6 @@ public class BTreeMain {
         for (Student s : studentsDB) {
             bTree.insert(s);
         }
-        
-        //TODO delete me
-        System.out.println("Quit after getStudents; theres a system exit here");
-        System.exit(0);
 
         /** Start reading the operations now from input file*/
         try {
@@ -100,6 +96,7 @@ public class BTreeMain {
                             List<Long> listOfRecordID = new ArrayList<>();
                             listOfRecordID = bTree.print();
                             System.out.println("List of recordIDs in B+Tree " + listOfRecordID.toString());
+                            break;
                         }
                         default:
                             System.out.println("Wrong Operation");
