@@ -748,6 +748,70 @@ class BTree {
     		}
     	}
     }
+	
+	/**
+	 * Deletes a student ID from the Student.csv file
+	 * @param deleteSID - student ID to be deleted
+	 */
+	private void deleteFromCSV(long deleteSID) {
+	    long sID;  //student ID
+	    long rID;  //record ID
+	    int age;   
+	    String name;
+	    String major;
+	    String level;
+
+	    String line;
+	    String[] lineSplit;
+	    //open scanner, try to read file
+	    Scanner sc = null;
+	    try {
+		sc = new Scanner(new File("src/Student.csv"));
+	    } catch (FileNotFoundException e) {
+		System.out.println("File not found.");
+	    }
+	    String delim = ",";  //set delimeter
+
+	    StringBuilder sb = new StringBuilder();
+
+	    //read each line from Students to find the one we are deleting
+	    while (sc.hasNextLine()) {
+		sc.useDelimiter(delim);				//use comma as delimeter
+		line = sc.nextLine();
+
+		lineSplit = line.split(delim);
+		sID = Long.parseLong(lineSplit[0]);
+		name = lineSplit[1];				//assign to name
+		major = lineSplit[2];				//assign to major
+		level = lineSplit[3];				//assign to level
+		age = Integer.parseInt(lineSplit[4]); //convert to Integer and assign to age
+		rID = Integer.parseInt(lineSplit[5]);
+		//System.out.println(sID);
+
+		if ( !(sID == deleteSID)) {
+		    //System.out.println("I don't match input deleteSID: " + deleteSID + ":" +sID);
+		    sb.append(sID + "," + name + "," + major + "," + level + "," + age + "," + rID + "\n");     		
+
+		}
+	    } //while
+
+	    //delete old version of Student.csv
+	    File file = new File("src/Student2.csv");  //TODO: change this to Student when ready
+	    file.delete();     
+
+	    //create new version of Student.csv
+	    try {
+		PrintWriter writer = new PrintWriter(new File("src/Student2.csv"));  //TODO: change this to student when ready
+		writer.write(sb.toString());    
+		writer.close();
+
+	    } catch (FileNotFoundException e) {
+		e.printStackTrace();
+	    }
+
+	    //System.out.println("delete sid: " + deleteSID + ", count: " + count);    	
+	    sc.close();
+	}
 
 
     /**
