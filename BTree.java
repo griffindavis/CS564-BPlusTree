@@ -80,9 +80,6 @@ class BTree {
     }
 
     BTree insert(Student student) {
-        /**
-         * TODO: update student.csv
-         */
 
          // find the correct leaf node
         BTreeNode node = root;
@@ -137,7 +134,7 @@ class BTree {
                         node.keys[i] = entry.studentId;
                         node.values[i] = entry.recordId;
                         node.n++;
-                        break; // TODO: make sure this is safe and we don't need to update the parent key in any circumstances
+                        break;
                     }
                 }
             }
@@ -362,31 +359,6 @@ class BTree {
         
     	return null;
     }
-    private BTreeNode findParentFromRoot (BTreeNode node, BTreeNode indexNode, long indexVal) {
-    	if (node == null) { // the leaf node has not been created yet
-            return null;
-        }
-    	for (int i = node.n; i>=0; i--) {
-    		if ((indexVal >= node.keys[i] && node.keys[i]>0) ) {
-    			if (node.children[i]==indexNode) {
-    				return node;
-    			}
-    			else {
-    				return findParentFromRoot(node.children[i],indexNode,indexVal);
-    			}
-    		}
-    		else if ((indexVal < node.keys[i]) && (i==0)) {
-    			if (node.children[i]==indexNode) {
-    				return node;
-    			}
-    			else {
-    				return findParentFromRoot(node.children[i],indexNode,indexVal);
-    			}
-    		}
-    	}
-    	return null;
-    	
-    }
     
     private int parentToChildKey (BTreeNode parentNode, BTreeNode node, long value) {
     	int childKey=0;
@@ -426,13 +398,10 @@ class BTree {
     		int i,j = 0 ;
     		int sibStart=(parentNode.children[leftNode].t-1);
     		int shrinkStart=(parentNode.children[rightNode].n);
-    		int shrinkMax=(parentNode.children[rightNode].t-1);
     		int sibMax=parentNode.children[leftNode].n;
     		int offSet = sibMax-sibStart;
     		int currNum=parentNode.children[rightNode].n;
-    		long indexVal =0;
     		if (!isLeaf) {
-    			indexVal=parentNode.children[rightNode].children[0].keys[0];
     			parentNode.children[leftNode].keys[shrinkStart] = parentNode.keys[rightNode-1];
     			parentNode.children[leftNode].children[shrinkStart+1] = parentNode.children[rightNode].children[0];
     			parentNode.children[leftNode].children[shrinkStart+1].n = parentNode.children[rightNode].children[0].n;
@@ -508,17 +477,9 @@ class BTree {
     		int i,j = 0 ;
     		int shrinkStart=(parentNode.children[leftNode].n);
     		int shrinkMax=(parentNode.children[leftNode].t-1);
-    		int sibMax=parentNode.children[rightNode].n;
     		int offSet = shrinkMax-shrinkStart;
     		int currNum=parentNode.children[rightNode].n;
     		//int shrinkCurrNum=parentNode.children[leftNode].n;
-    		int preOffSet,postOffSet = 0;
-    		if (currChild==rightNode) {
-    			preOffSet=offSet;
-    		}
-    		else {
-    			postOffSet=offSet;
-    		}
     		long indexVal =0;
     		if (!isLeaf) {
     			//System.out.println("  THIS is not leafy " +shrinkStart);
@@ -623,7 +584,6 @@ class BTree {
     		larger=sibling;
     	}
     	//merge keys:
-    	long oldKey = parentNode.keys[larger];
 		int smallerNum=parentNode.children[smaller].n;
 		int largerNum=parentNode.children[larger].n;
 		for (int i=0; i<largerNum; i++) {
@@ -677,6 +637,7 @@ class BTree {
     	if (foundNode == root && !root.leaf && root.n == 0) {
             root = root.children[0];
     	}
+		deleteFromCSV(studentId);
     	return true;
     }
     boolean deleteRecursive(BTreeNode parent, BTreeNode foundNode, long studentId, long origKey) {
@@ -796,12 +757,12 @@ class BTree {
 	    } //while
 
 	    //delete old version of Student.csv
-	    File file = new File("src/Student2.csv");  //TODO: change this to Student when ready
+	    File file = new File("src/Student.csv");
 	    file.delete();     
 
 	    //create new version of Student.csv
 	    try {
-		PrintWriter writer = new PrintWriter(new File("src/Student2.csv"));  //TODO: change this to student when ready
+		PrintWriter writer = new PrintWriter(new File("src/Student.csv"));  //
 		writer.write(sb.toString());    
 		writer.close();
 
@@ -834,71 +795,5 @@ class BTree {
             node = node.next;
         };
         return listOfRecordID;
-    }
-
-    /**
-     * For testing purposes
-     * Prints the tree nicely for debugging
-     *
-     * TODO: Delete Me
-     */
-    void printTree() {
-        ArrayList<BTreeNode> nodeList = new ArrayList<BTreeNode>();
-        nodeList.add(this.root);
-        while (!nodeList.isEmpty()) {
-            // print keys of the whole list
-            String out = "";
-            for (int i = 0; i < nodeList.size(); i++) {
-                out += printNode(nodeList.get(i));
-            }
-            // add all children of the keys
-            int size = nodeList.size();
-            for (int j = 0; j < size; j++) {
-                BTreeNode node = nodeList.get(0);
-                for (int k = 0; k <= node.n; k++) {
-                    if (node.children[k] != null) {
-                        nodeList.add(node.children[k]);
-                    }
-                }
-                nodeList.remove(node);
-            }
-            if (nodeList.size() > 0) {
-                for (int i = 0; i < 10 - nodeList.size(); i++) {
-                    out = "\t" + out;
-                }
-            }
-            System.out.println(out);
-        }
-    }
-
-    /**
-     * For testing purposes, returns a string of the node
-     * @param node - node to print
-     * @return String representing the node to print
-     * 
-     * TODO: Delete Me
-     */
-    String printNode(BTreeNode node) {
-        String out = "";
-        if (node.leaf) {
-            for (int i = 0; i < node.maxKeys(); i++) {
-                if (node.keys[i] == 0) { break; }
-                out += "(" + node.keys[i] + ")";
-            }
-        }
-        else {
-            for (int i = 0; i < node.maxKeys(); i++) {
-                //if (node.keys[i] == 0) { break; }
-                if (i == 0) {
-                    out += "<" + node.children[i] + ">";
-                }
-                out += node.keys[i];
-                if (i < node.maxKeys()) {
-                    out += "<" + node.children[i+1] + ">";
-                }
-                out += (i < node.maxKeys() - 1 ? " " : "");
-            }
-        }
-        return "[" + out + "] ";
     }
 }
