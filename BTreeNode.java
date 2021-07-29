@@ -77,6 +77,23 @@ class BTreeNode {
         }
         return -1;
     }
+    boolean removeValue(long k) {
+        boolean flag=false;
+        for (int i=0; i<n; i++) {
+            if (keys[i]==k) {
+                for (int j =i+1; j<n; j++) {
+                    keys[j-1] = keys[j];
+                    values[j-1] = values[j];
+                }
+                keys[n-1] = 0;
+                values[n-1] = 0;
+                this.n = n-1;
+                flag = true;
+                break;
+            }
+        }
+        return flag;
+    }
     boolean hasMinPopulation () {
     	if (this.n<= ((this.t)/2)) {
     		return false;
