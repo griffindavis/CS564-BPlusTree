@@ -210,7 +210,6 @@ class BTree {
                 temp.children[0] = currNode;
                 temp.children[1] = n2;
                 temp.n++;
-
                 return temp;
                 */
             
@@ -324,7 +323,7 @@ class BTree {
         }
         return false;
     }
-
+    
     private BTreeNode findParentNode (BTreeNode node, BTreeNode parentNode, long studentId) {
     	if (node == null) { // the leaf node has not been created yet
             return null;
@@ -369,11 +368,10 @@ class BTree {
         }
     	for (int i = node.n; i>=0; i--) {
     		if ((indexVal >= node.keys[i] && node.keys[i]>0) ) {
-    			if (node.children[i+1]==indexNode) {
+    			if (node.children[i]==indexNode) {
     				return node;
     			}
     			else {
-    				System.out.println("idx: "+node.children[i].keys[0]+"|"+indexVal+"|"+node.keys[i]);
     				return findParentFromRoot(node.children[i],indexNode,indexVal);
     			}
     		}
@@ -402,10 +400,8 @@ class BTree {
     
     private boolean canRedistribute (BTreeNode parentNode, int currChild, int sibling) {
     	int joinedKeyCount = parentNode.children[currChild].n + parentNode.children[sibling].n;
-    	//int joinedMinKeyCnt = (parentNode.children[currChild].t)/2 +1 + ((parentNode.children[sibling].t)/2) + 1;
     	int joinedMinKeyCnt = (parentNode.children[currChild].t)-1 + ((parentNode.children[sibling].t) -1 );
-    	//System.out.println(parentNode.children[3].keys[2] +"|" + parentNode.children[currChild].n + "|" + parentNode.children[sibling].n + "|joined key count: " + joinedKeyCount + "|joinedMinKeyCnt: " + joinedMinKeyCnt);
-    	if (joinedKeyCount<= joinedMinKeyCnt) {
+    	if (joinedKeyCount< joinedMinKeyCnt) {
     		return false;
     	}
     	return true;
@@ -420,32 +416,92 @@ class BTree {
     		leftNode=currChild;
     		rightNode=sibling;
     	}
+    	boolean isLeaf = false;
+    	if (parentNode.children[leftNode].leaf) {
+    		isLeaf = true;
+    	}
     	if (currChild > sibling) {  //node where we did removal is to the right
     		//BTreeNode copy = parentNode.children[currChild];
     		//parentNode.children[currChild].clearNode();
     		int i,j = 0 ;
-    		int sibStart=(parentNode.children[sibling].t-1);
-    		int sibMax=parentNode.children[sibling].n;
+    		int sibStart=(parentNode.children[leftNode].t-1);
+    		int shrinkStart=(parentNode.children[rightNode].n);
+    		int shrinkMax=(parentNode.children[rightNode].t-1);
+    		int sibMax=parentNode.children[leftNode].n;
     		int offSet = sibMax-sibStart;
-    		int currNum=parentNode.children[currChild].n;
+    		int currNum=parentNode.children[rightNode].n;
+    		long indexVal =0;
+    		if (!isLeaf) {
+    			indexVal=parentNode.children[rightNode].children[0].keys[0];
+    			parentNode.children[leftNode].keys[shrinkStart] = parentNode.keys[rightNode-1];
+    			parentNode.children[leftNode].children[shrinkStart+1] = parentNode.children[rightNode].children[0];
+    			parentNode.children[leftNode].children[shrinkStart+1].n = parentNode.children[rightNode].children[0].n;
+    		}
     		
-    		for (i=0; i<currNum; i++) {
+    		//for (i=0; i<currNum; i++) {
+    		for (i=0; i<offSet; i++) {
     			
-    			parentNode.children[currChild].keys[i+offSet] = parentNode.children[currChild].keys[i];
-    			parentNode.children[currChild].values[i+offSet] = parentNode.children[currChild].values[i];
+    			//parentNode.children[rightNode].keys[i+offSet] = parentNode.children[rightNode].keys[i];
+    			//parentNode.children[rightNode].values[i+offSet] = parentNode.children[rightNode].values[i];
+    			if (isLeaf) {
+    				parentNode.children[rightNode].keys[i+offSet] = parentNode.children[rightNode].keys[i];
+    				parentNode.children[rightNode].values[i+offSet] = parentNode.children[rightNode].values[i];
+    			}
+    			else { //not leaf and not the first node added (which is unique)
+    				parentNode.children[rightNode].keys[i+offSet] = parentNode.children[rightNode].keys[i];
+    				parentNode.children[rightNode].children[i+offSet] = parentNode.children[rightNode].children[i];
+    				parentNode.children[rightNode].children[i+offSet].n = parentNode.children[rightNode].children[i].n;
+    				//System.out.println("BALANCE BEEF ["+i+"]: "+ parentNode.children[leftNode].children[i+1].keys[0]);
+    			}
     			//parentNode.children[currChild].n++;
+    			//System.out.println("BALANCE BEF ["+(i+offSet)+"]: "+ parentNode.children[currChild].keys[i+offSet] +"|" );
     		}
+
+    		//System.out.println("BALANCE BEF: "+ parentNode.children[currChild].n + "|" + sibStart + "|" + sibMax + "|" + currNum);
     		for (i=sibStart; i<sibMax; i++, j++) {
-    			parentNode.children[currChild].keys[j] = parentNode.children[sibling].keys[i];
-    			parentNode.children[currChild].values[j] = parentNode.children[sibling].values[i];
-    			//parentNode.children[currChild].n++;
-    			parentNode.children[sibling].keys[i]=0;
-    			parentNode.children[sibling].values[i]=0;
+    			if (isLeaf) {
+	    			parentNode.children[rightNode].keys[j] = parentNode.children[leftNode].keys[i];
+	    			parentNode.children[rightNode].values[j] = parentNode.children[leftNode].values[i];
+	    			//parentNode.children[currChild].n++;
+	    			parentNode.children[leftNode].keys[i]=0;
+	    			parentNode.children[leftNode].values[i]=0;
+    			}
+    			else {
+    				if (j>0) {
+    					parentNode.children[rightNode].keys[j] = parentNode.children[leftNode].keys[i];
+    					parentNode.children[rightNode].children[j] = parentNode.children[rightNode].children[i];
+    					parentNode.children[rightNode].children[j].n = parentNode.children[rightNode].children[i].n;
+    				}
+    				else {
+    					parentNode.children[leftNode].children[0] = parentNode.children[rightNode].children[i];
+    					parentNode.children[leftNode].children[0].n = parentNode.children[rightNode].children[i].n;
+    				}
+    				
+    			}
+    			//System.out.println("BALANCE BEEF ["+j+"]: "+ parentNode.children[currChild].keys[j]);
     		}
-    		parentNode.children[currChild].n=currNum+offSet;
+    		for (i=(sibMax-offSet); i<sibMax; i++) {
+
+    			if (isLeaf) {
+    				parentNode.children[leftNode].keys[i] = 0; 
+    				parentNode.children[leftNode].values[i] = 0;
+    			}
+    			else {
+    				parentNode.children[leftNode].keys[i] = 0; 
+    				parentNode.children[leftNode].children[i+1] = null;
+
+    				parentNode.children[leftNode].children[i+1].n = 0;
+    			}
+    		}
+    		parentNode.children[rightNode].n=currNum+offSet;
     		//update parent node key
-    		parentNode.keys[currChild-1]=parentNode.children[currChild].keys[0];
-    		parentNode.children[sibling].n=sibStart;
+    		parentNode.keys[rightNode-1]=parentNode.children[rightNode].keys[0];
+    		parentNode.children[leftNode].n=sibStart;
+    		//
+    		//parentNode.children[leftNode].n=shrinkMax;
+    		//update parent node key
+    		//parentNode.keys[rightNode-1]=parentNode.children[rightNode].keys[0];
+    		//parentNode.children[rightNode].n=currNum-offSet;
     		
     	}
     	else {//currChild on LEFT and is leftNode
@@ -463,28 +519,97 @@ class BTree {
     		else {
     			postOffSet=offSet;
     		}
-
-    		System.out.println("BALANCE BEF: "+ parentNode.children[leftNode].n + "|" + shrinkStart + "|" + sibMax + "|" + currNum);
-    		for (i=shrinkStart; i<shrinkMax; i++, j++) {
-    			parentNode.children[leftNode].keys[i] = parentNode.children[rightNode].keys[j];
-    			parentNode.children[leftNode].values[i] = parentNode.children[rightNode].values[j];
+    		long indexVal =0;
+    		if (!isLeaf) {
+    			//System.out.println("  THIS is not leafy " +shrinkStart);
+    			indexVal=parentNode.children[rightNode].children[0].keys[0];
+    			parentNode.children[leftNode].keys[shrinkStart] = parentNode.keys[rightNode-1];
+    			parentNode.children[leftNode].children[shrinkStart+1] = parentNode.children[rightNode].children[0];
+    			parentNode.children[leftNode].children[shrinkStart+1].n = parentNode.children[rightNode].children[0].n;
     		}
-    		for (i=offSet; i<currNum; i++) {
+    		
+
+    		for (i=shrinkStart; i<shrinkMax; i++, j++) {
     			
-    			parentNode.children[rightNode].keys[i-offSet] = parentNode.children[rightNode].keys[i];
-    			parentNode.children[rightNode].values[i-offSet] = parentNode.children[rightNode].values[i];
-    			//parentNode.children[leftNode].n++;
+    			if (isLeaf) {
+    				parentNode.children[leftNode].keys[i] = parentNode.children[rightNode].keys[j];
+    				parentNode.children[leftNode].values[i] = parentNode.children[rightNode].values[j];
+    			}
+    			else if( i>shrinkStart){ //not leaf and not the first node added (which is unique)
+    				parentNode.children[leftNode].keys[i] = parentNode.children[rightNode].keys[j];
+    				parentNode.children[leftNode].children[i] = parentNode.children[rightNode].children[j];
+    				parentNode.children[leftNode].children[i].n = parentNode.children[rightNode].children[j].n;
+    				
+    			}
+    		}
+	    	if (!isLeaf) {
+	    		parentNode.children[rightNode].children[0] = parentNode.children[rightNode].children[1];
+	    		parentNode.children[rightNode].children[0].n=parentNode.children[rightNode].children[1].n;
+	    	}
+    		for (i=offSet; i<currNum; i++) {
+    			if (isLeaf) {
+    				parentNode.children[rightNode].keys[i-offSet] = parentNode.children[rightNode].keys[i];
+    				parentNode.children[rightNode].values[i-offSet] = parentNode.children[rightNode].values[i];
+    			}
+    			else if (i>=offSet){
+    				parentNode.children[rightNode].keys[i-offSet] = parentNode.children[rightNode].keys[i];
+    				parentNode.children[rightNode].children[(i-offSet)+1] = parentNode.children[rightNode].children[i+1];
+    				parentNode.children[rightNode].children[(i-offSet)+1].n=parentNode.children[rightNode].children[(i)+1].n;
+    				//System.out.println("BALANCE BEAF ["+i+"]: "+ parentNode.children[leftNode].children[(i-offSet)+1].keys[0]);
+    			}
     		}
     		for (i=(currNum-offSet); i<currNum; i++) {
     			
-    			parentNode.children[rightNode].keys[i] = 0; 
-    			parentNode.children[rightNode].values[i] = 0;
-    			//parentNode.children[leftNode].n++;
+    			
+    			if (isLeaf) {
+    				parentNode.children[rightNode].keys[i] = 0; 
+    				parentNode.children[rightNode].values[i] = 0;
+    			}
+    			else {
+    				parentNode.children[rightNode].keys[i] = 0; 
+    				parentNode.children[rightNode].children[i+1] = null;
+    			}
     		}
     		parentNode.children[leftNode].n=shrinkMax;
-    		//update parent node key
-    		parentNode.keys[rightNode-1]=parentNode.children[rightNode].keys[0];
     		parentNode.children[rightNode].n=currNum-offSet;
+    		if (!isLeaf ) {
+    			BTreeNode grandParent = findDirectParentFromRoot(root,parentNode);//parentNode.keys[0]);
+        		
+    			if ( grandParent !=null) {
+    		
+	    			propogateMiddleKeyUp(grandParent,parentNode.children[rightNode],parentNode.children[rightNode].children[0].keys[0],indexVal);
+	    		}    	
+    		}
+    		else {
+    			parentNode.keys[rightNode-1]=parentNode.children[rightNode].keys[0];
+    		}
+    	}
+    }
+    private BTreeNode findDirectParentFromRoot (BTreeNode node, BTreeNode indexNode) {
+    	BTreeNode foundNode=null;
+    	if (node == null) { // the leaf node has not been created yet
+            return null;
+        }
+    	if (node==indexNode ) {return node;}
+    	for (int i = 0; i<node.n; i++) {
+    		if ((node.children[i] ==indexNode) ) {
+    			return node;
+    		}
+    		else {
+    			foundNode=findDirectParentFromRoot(node.children[i],indexNode);
+    			if (foundNode!=null) {
+    				return findDirectParentFromRoot(node.children[i],indexNode);
+    			}
+    		}
+    	}
+    	return null;
+    	
+    }
+    private void propogateMiddleKeyUp(BTreeNode grandParent, BTreeNode node, long key, long oldKey) {
+
+    	int keyForVal = grandParent.keyForValue(oldKey);
+    	if(keyForVal>-1) { 
+    		grandParent.keys[keyForVal] = key;//node.keys[0]; //set to min value from found Node
     	}
     }
     boolean mergeNodesOnDelete(BTreeNode parentNode, int currChild, int sibling) {
@@ -498,10 +623,9 @@ class BTree {
     		larger=sibling;
     	}
     	//merge keys:
-    	long oldKey = parentNode.keys[1];
+    	long oldKey = parentNode.keys[larger];
 		int smallerNum=parentNode.children[smaller].n;
 		int largerNum=parentNode.children[larger].n;
-		
 		for (int i=0; i<largerNum; i++) {
 			parentNode.children[smaller].keys[i+smallerNum] = parentNode.children[larger].keys[i];
 			if (parentNode.children[smaller].leaf) {
@@ -509,35 +633,29 @@ class BTree {
 			}
 		}
 		parentNode.children[larger].clearNode();
-		parentNode.children[larger]=parentNode.children[larger+1]; //remove?
+		parentNode.children[larger]=parentNode.children[larger+1];
+		parentNode.keys[smaller]=parentNode.keys[larger];
 		parentNode.children[smaller].n=smallerNum+largerNum;
     	//handle action on parent node
-    	if (smaller>0 ) {
-    		
-    		parentNode.keys[smaller]=parentNode.children[smaller+1].keys[0];
-    	}
-    	else if (larger<2) {
-    		//propogateKeyUp(parentNode,parentNode.children[1],parentNode.keys[0]); broken
+    	if (smaller>0 && larger<parentNode.n) {
+    		parentNode.keys[smaller]=parentNode.children[smaller].keys[0];
     	}
     	//shift parent nodes left
-    	if (larger<parentNode.n) {
-	    	for (int i=larger; i<parentNode.n; i++) {
+    	if (larger<parentNode.n ) {
+	    	for (int i=larger+1; i<parentNode.n; i++) {
 				parentNode.keys[i-1] = parentNode.keys[i];
 				parentNode.children[i-1] = parentNode.children[i];
+				parentNode.children[i-1].n=parentNode.children[i].n;
 			}
-	    	if (smaller==0) {
-	    		//BTreeNode grandParent = findParentNode(parentNode,parentNode,parentNode.keys[0]); broken for now
-	    		//propogateKeyUp(grandParent,parentNode,oldKey);
-	    	}
     	}
     	
     	//make last node 0 and reduce count
-    	parentNode.keys[(parentNode.n)-1]= 0;
-    	parentNode.children[parentNode.n] = null;
+    	parentNode.keys[(parentNode.n)]= 0;
+    	parentNode.children[(parentNode.n)] = null;
     	parentNode.n--;
-		
+    	parentNode.children[(parentNode.n)-1].n=smallerNum+largerNum;//n--;
+    	
     	return true;
-
     }
 
     boolean delete(long studentId) {
@@ -552,7 +670,6 @@ class BTree {
     	if (foundNode == null) {
     		return false;
     	}
-    	
     	//remove node then do the rest
     	if ( foundNode.removeValue(studentId) == false) {return false;}
     	
@@ -560,7 +677,6 @@ class BTree {
     	if (foundNode == root && !root.leaf && root.n == 0) {
             root = root.children[0];
     	}
-    	
     	return true;
     }
     boolean deleteRecursive(BTreeNode parent, BTreeNode foundNode, long studentId, long origKey) {
@@ -568,38 +684,41 @@ class BTree {
     		return false;
     	}
     	boolean needsRebalance = false;
+    	
     	int keyForVal = parent.keyForValue(origKey);
+    	int childKey = parentToChildKey(parent, foundNode,studentId);
     	if (!foundNode.hasMinPopulation()) {  //not populated enough, need to rebalance or merge
-    		int childKey = parentToChildKey(parent, foundNode,studentId);
-    		//balance (parent, childKey, childKey-1); //TODO: delete
-    		
     		if (childKey<1 && parent.n>0 ) {//left-most so need to try with right sibling
     			if (canRedistribute(parent, childKey, childKey+1)) {
     				balance(parent,childKey,childKey+1);
-				propogateKeyUp(parent,foundNode,parent.keys[0]);
+    				propogateKeyUp(parent,foundNode,parent.keys[0]);
     			}
     			else {
-    				mergeNodesOnDelete (parent, childKey, childKey+1);
+    				mergeNodesOnDelete (parent, childKey, childKey+1);    				
     				needsRebalance=true;
-				propogateKeyUp(parent,foundNode,parent.keys[0]);
+    				propogateKeyUp(parent,foundNode,parent.keys[0]);
     			}
     		}
-    		else if (childKey < parent.n && parent.keys[childKey+1]>0) {  //has right sibling, try first
+    		else if (childKey < parent.n && parent.keys[childKey]>0) {  //has right sibling, try first
     			if (canRedistribute(parent, childKey, childKey+1)) {
     				balance (parent, childKey, childKey+1);
+    				propogateKeyUp(parent,foundNode,parent.children[childKey].keys[0]);
     			}
     			else if (canRedistribute(parent, childKey, childKey-1)) {
     				balance (parent, childKey, childKey-1);
+    				propogateKeyUp(parent,foundNode,parent.children[childKey].keys[0]);
     			}
     			else {//merge with right by default if inner
     				mergeNodesOnDelete (parent, childKey, childKey+1);
-    				needsRebalance=true;
+    				propogateKeyUp(parent,foundNode,parent.children[childKey+1].keys[0]);
     			}
+    			needsRebalance=true;
     		}
     		else {
     			//right-most so must try left
     			if (canRedistribute(parent, childKey, childKey-1)) {
     				balance (parent, childKey, childKey-1);
+    				needsRebalance=true;
     			}
     			else {
     				mergeNodesOnDelete (parent, childKey, childKey-1);
@@ -608,20 +727,18 @@ class BTree {
     		}
     	}
     	else if(keyForVal>-1) { 
-
-    		propogateKeyUp(parent,foundNode,studentId);
+    		propogateKeyUp(parent,foundNode,parent.children[keyForVal].keys[0]);
     	}
-    	if (parent != root && parent.n<parent.t && needsRebalance) {
-    		BTreeNode grandParent = findParentFromRoot(root,parent,parent.keys[0]);
-    		//System.out.println("grand: " + grandParent.keys[0]);
-    		if (grandParent==null) {return false;}
-    		return deleteRecursive(grandParent,parent,parent.keys[1],origKey);
+    	if (parent.n<parent.t && needsRebalance) {
+    		//BTreeNode grandParent = findParentFromRoot(root,parent,parent.keys[0]);
+    		BTreeNode grandParent = findDirectParentFromRoot(root,parent);
+    		if (grandParent==null) {return false;} 
+    		return deleteRecursive(grandParent,parent,parent.keys[childKey],origKey);
     	}
     	return true;
     }
     private void propogateKeyUp(BTreeNode parent, BTreeNode node, long key) {
-    	//needs to be fixed- 
-    	
+
     	int keyForVal = node.keyForValue(key);
     	if(keyForVal>-1) { 
     		parent.keys[keyForVal] = node.keys[0]; //set to min value from found Node
@@ -631,6 +748,7 @@ class BTree {
     		}
     	}
     }
+
 
     /**
      * Returns a list of the record IDs in the leaf nodes of the tree
